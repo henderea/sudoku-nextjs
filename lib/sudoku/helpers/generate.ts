@@ -47,7 +47,7 @@ export function generate(difficulty: DIFFICULTY | number, unique: boolean = true
       e.g., 0 -> 17, and 100 -> 81.
     
     
-      By default, the puzzles are unique, uless you set `unique` to false. 
+      By default, the puzzles are unique, unless you set `unique` to false. 
       (Note: Puzzle uniqueness is not yet implemented, so puzzles are *not* 
       guaranteed to have unique solutions)
     
