@@ -1,71 +1,155 @@
-/*
-    Sudoku.ts
-    ---------
+import { _rand, _times } from './utils';
+import { toGenericGrid, exportGenericGrid, importGenericGrid } from './exportImport';
 
-    A Sudoku puzzle generator and solver JavaScript library.
+import { Square, square } from './Square';
+import { Grid } from './Grid';
 
-    based on https://github.com/robatron/sudoku.js
-*/
+function r(a: number, b: number): [number, number] {
+    return [a, b];
+}
 
-import { SudokuConfig, SudokuMeta } from './helpers/config';
-import { DIFFICULTIES, DIFFICULTY, generate } from './helpers/generate';
-import { solve, getCandidates } from './helpers/solve';
-import { getAllUnits, getSquareUnitsMap, getSquarePeersMap } from './helpers/relationships';
-import { cross, validateBoard } from './helpers/utils';
-import { boardStringToGrid, boardGridToString } from './helpers/conversions';
+export type DifficultyMap<T> = {
+    easy: T,
+    medium: T,
+    hard: T
+}
 
-SudokuMeta.initialize(cross, getAllUnits, getSquareUnitsMap, getSquarePeersMap);
+const difficultySpaces: DifficultyMap<[number, number]> = {
+    easy: r(35, 45),
+    medium: r(30, 35),
+    hard: r(25, 30)
+};
 
-export class Sudoku {
-    get config(): SudokuConfig { return SudokuConfig.instance; }
-    get meta(): SudokuMeta { return SudokuMeta.instance; }
-    get difficulties(): typeof DIFFICULTIES { return DIFFICULTIES; }
-    validateBoard(board: string | string[] | null | undefined): string | true { return validateBoard(board); }
-    generate(difficulty: DIFFICULTY | number, unique: boolean = true): string { return generate(difficulty, unique); }
-    solve(board: string, reverse: boolean = false): string | false { return solve(board, reverse); }
-    getCandidates(board: string): string[][] | false { return getCandidates(board); }
-    boardStringToGrid(boardString: string): string[][] { return boardStringToGrid(boardString); }
-    boardGridToString(boardGrid: string[][]): string { return boardGridToString(boardGrid); }
+export declare type Difficulty = keyof DifficultyMap<any>;
 
-    /* Format a sudoku `board` for output. */
-    formatBoard(board: string): string {
-        // Assure a valid board
-        const validation: string | true = this.validateBoard(board);
-        if(validation !== true) {
-            throw validation;
-        }
+function getRandomSpacesForDifficulty(difficulty: Difficulty): number {
+    const spaceRange: [number, number] = difficultySpaces[difficulty];
+    return _rand(spaceRange[0], spaceRange[1]);
+}
 
-        const V_PADDING: string = ' ';  // Insert after each square
-        const H_PADDING: string = '\n'; // Insert after each row
+export type GenerateResult = {
+    tries: number,
+    success: boolean,
+    duration: number,
+    full: Grid,
+    grid: Grid
+};
 
-        const V_BOX_PADDING: string = '  '; // Box vertical padding
-        const H_BOX_PADDING: string = '\n'; // Box horizontal padding
+export function generateDifficulty(difficulty: Difficulty): GenerateResult {
+    return generate(getRandomSpacesForDifficulty(difficulty));
+}
 
-        let displayString: string = '';
-
-        for(let i: number = 0; i < board.length; i++) {
-            const square: string = board[i];
-
-            // Add the square and some padding
-            displayString += square + V_PADDING;
-
-            // Vertical edge of a box, insert v. box padding
-            if(i % 3 === 2) {
-                displayString += V_BOX_PADDING;
+export function generate(cells: number = 81, maxTries: number = 10000): GenerateResult {
+    const full: Grid = generateGrid();
+    const grid: Grid = full.copy();
+    let triedInds: number[] = [];
+    let tries: number = 0;
+    let startTime: number = Date.now();
+    while(tries < maxTries) {
+        tries++;
+        while(grid.spotCount > cells && triedInds.length < 81) {
+            let i: number = _rand(81);
+            while(triedInds.includes(i) || grid.get(i).value == 0) {
+                i = _rand(81);
             }
-
-            // End of a line, insert horiz. padding
-            if(i % 9 === 8) {
-                displayString += H_PADDING;
-            }
-
-            // Horizontal edge of a box, insert h. box padding
-            if(i % 27 === 26) {
-                displayString += H_BOX_PADDING;
+            triedInds.push(i);
+            const cell: Square = grid.get(i);
+            const oldValue: number = cell.value;
+            cell.value = 0;
+            if(grid.uniqueness != 'unique') {
+                cell.value = oldValue;
             }
         }
+        if(grid.spotCount == cells) {
+            return { tries, success: true, duration: (Date.now() - startTime), full, grid };
+        }
+    }
+    return { tries, success: false, duration: (Date.now() - startTime), full, grid: full.copy() };
+}
 
-        return displayString;
+export function generateGrid(): Grid {
+    const squares: Square[] = _times(81, (i: number) => square(i, 0));
+    const makeAvailable: () => number[] = () => [1, 2, 3, 4, 5, 6, 7, 8, 9];
+    const available: number[][] = _times(81, makeAvailable);
+    let c: number = 0;
+    while(c < 81) {
+        if(available[c].length > 0) {
+            let i: number = _rand(available[c].length);
+            let z: number = available[c][i];
+            let test: Square = square(c, z);
+            if(hasConflict(squares, test)) {
+                available[c].splice(i, 1);
+            } else {
+                squares[c].value = z;
+                available[c].splice(i, 1);
+                c++;
+            }
+        } else {
+            available[c] = makeAvailable();
+            squares[c - 1].value = 0;
+            c--;
+        }
+    }
+    return new Grid(squares, false);
+}
+
+function hasConflict(squares: Square[], test: Square): boolean {
+    for(let square of squares) {
+        if(test.aligns(square) && square.value == test.value) {
+            return true;
+        }
+    }
+    return false;
+}
+
+export function generateGenericGrid(difficulty: Difficulty, maxTries: number = 10): { tries: number, success: boolean, full: string, grid: string } {
+    let s: boolean = false;
+    let f: string = '';
+    let g: string = '';
+    let tries: number = 0;
+    while(!s && tries < maxTries) {
+        tries++;
+        const { success, full, grid } = generateDifficulty(difficulty);
+        s = success;
+        if(s) {
+            f = toGenericGrid(full);
+            g = toGenericGrid(grid);
+        } else {
+            f = '';
+            g = '';
+        }
+    }
+    return {
+        tries,
+        success: s,
+        full: f,
+        grid: g
     };
 }
 
+export function generateGenericGrids(difficulty: Difficulty, count: number): { duration: number, grids: Array<{ full: string, grid: string }> } {
+    const grids: Array<{ full: string, grid: string }> = [];
+    const startTime: number = Date.now();
+    for(let i: number = 0; i < count; i++) {
+        const { success, full, grid } = generateGenericGrid(difficulty);
+        if(success) {
+            grids.push({ full, grid });
+        }
+    }
+    return { duration: (Date.now() - startTime), grids };
+}
+
+export function generateAllGenericGrids(counts: DifficultyMap<number>): DifficultyMap<{ duration: number, grids: Array<{ full: string, grid: string}> }> {
+    return {
+        easy: generateGenericGrids('easy', counts.easy),
+        medium: generateGenericGrids('medium', counts.medium),
+        hard: generateGenericGrids('hard', counts.hard)
+    };
+}
+
+export {
+    Square,
+    Grid,
+    exportGenericGrid,
+    importGenericGrid
+}
