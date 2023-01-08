@@ -22,7 +22,7 @@ export function fromGenericGrid(grid: string, mappings: string[]) {
 }
 
 export function importGenericGrid(full: string, grid: string): { full: Grid, grid: Grid } {
-    const mappings: string[] = _shuffleCopy(numberToGeneric);
+    const mappings: string[] = _shuffleCopy(numberToGeneric, 1);
     return {
         full: fromGenericGrid(full, mappings),
         grid: fromGenericGrid(grid, mappings)

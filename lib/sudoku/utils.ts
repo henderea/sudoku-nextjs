@@ -47,13 +47,16 @@ export function _rand(min: number, max?: number): number {
     return Math.floor((max - min) * Math.random()) + min;
 }
 
-export function _shuffleCopy<T>(array: T[]) {
-    let currentIndex: number = array.length;
+export function _shuffleCopy<T>(array: T[], start: number = 0, end: number = array.length) {
     let copy: T[] = Array.from(array);
-    let i: number = copy.length;
+    end = end || copy.length;
+    if(start < 0) { start = 0; }
+    if(end > copy.length) { end = copy.length; }
+    if(start >= end) { return copy; }
+    let i: number = end;
     let r: number;
-    while(i != 0) {
-        r = _rand(i);
+    while(i >= start) {
+        r = _rand(start, i);
         i--;
 
         [copy[i], copy[r]] = [copy[r], copy[i]];
