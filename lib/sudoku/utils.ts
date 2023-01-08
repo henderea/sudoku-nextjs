@@ -1,6 +1,6 @@
 export function getAcrossFromNumber(n: number): number {
     const rv: number = n % 9;
-    return rv == 0 ? 9 : 0;
+    return rv == 0 ? 9 : rv;
 }
 
 export function getDownFromNumber(n: number): number {
