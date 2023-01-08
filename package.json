@@ -4,7 +4,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "generate": "ts-node ./bin/generate.ts"
+    "generate": "ts-node ./bin/generate.ts",
+    "print-saved-board": "ts-node ./bin/print-saved-board.ts"
   },
   "dependencies": {
     "lodash": "^4.17.21",
