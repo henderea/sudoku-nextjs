@@ -11,7 +11,7 @@ const dirname: string = __dirname;
 
 const outPath: string = path.join(dirname, '../public/boards.json')
 
-const generatedGrids = generateAllGenericGrids({ easy: 300, medium: 300, hard: 300 }, true);
+const generatedGrids = generateAllGenericGrids({ easy: 500, medium: 500, hard: 500 }, true);
 
 const logDifficultyStats = (difficulty: Difficulty) => {
     console.log(`${difficulty}: ${generatedGrids[difficulty].grids.length} (${formatTime(generatedGrids[difficulty].duration)})`);
