@@ -55,7 +55,7 @@ export function _shuffleCopy<T>(array: T[], start: number = 0, end: number = arr
     if(start >= end) { return copy; }
     let i: number = end;
     let r: number;
-    while(i >= start) {
+    while(i > start) {
         r = _rand(start, i);
         i--;
 
