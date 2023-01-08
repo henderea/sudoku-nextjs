@@ -63,3 +63,19 @@ export function _shuffleCopy<T>(array: T[], start: number = 0, end: number = arr
     }
     return copy;
 }
+
+export function zeroPad(n: number, length: number): string {
+    let rv: string = `${n}`;
+    while(rv.length < length) {
+        rv = `0${rv}`;
+    }
+    return rv;
+}
+
+export function formatTime(d: number): string {
+    let h: number = Math.floor(d / (60 * 60 * 1000));
+    let m: number = Math.floor((d / (60 * 1000)) % 60);
+    let s: number = Math.floor((d / 1000) % 60);
+    let ms: number = d % 1000;
+    return `${h}:${zeroPad(m, 2)}:${zeroPad(s, 2)}.${zeroPad(ms, 3)}`;
+}

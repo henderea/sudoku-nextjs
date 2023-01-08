@@ -1,0 +1,40 @@
+{
+    "compilerOptions": {
+      "target": "es5",
+      "module": "Node16",
+      "declaration": true,
+      "declarationDir": "./ts-lib",
+      "strict": true,
+      "lib": [
+        "es2015",
+        "dom",
+        "esnext"
+      ],
+      "baseUrl": ".",
+      "paths": {
+        "lib/*": [
+          "lib/*"
+        ],
+        "ts-lib/*": [
+          "ts-lib/*"
+        ]
+      },
+      "typeRoots": [
+        "./node_modules/@types"
+      ],
+      "allowSyntheticDefaultImports": true,
+      "sourceMap": true
+    },
+    "include": [
+      "src/**/*.ts",
+      "lib/**/*.ts"
+    ],
+    "ts-node": {
+        "transpileOnly": true,
+        "files": true,
+        "compilerOptions": {
+            "target": "ESNext"
+        }
+    }
+  }
+  

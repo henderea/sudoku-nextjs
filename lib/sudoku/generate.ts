@@ -1,4 +1,4 @@
-import { _rand, _times } from './utils';
+import { _rand, _times, formatTime } from './utils';
 import { toGenericGrid } from './exportImport';
 
 import { Square, square } from './Square';
@@ -127,7 +127,7 @@ export function generateGenericGrid(difficulty: Difficulty, maxTries: number = 1
     };
 }
 
-export function generateGenericGrids(difficulty: Difficulty, count: number): { duration: number, grids: Array<{ full: string, grid: string }> } {
+export function generateGenericGrids(difficulty: Difficulty, count: number, print: boolean = false): { duration: number, grids: Array<{ full: string, grid: string }> } {
     const grids: Array<{ full: string, grid: string }> = [];
     const startTime: number = Date.now();
     for(let i: number = 0; i < count; i++) {
@@ -135,14 +135,17 @@ export function generateGenericGrids(difficulty: Difficulty, count: number): { d
         if(success) {
             grids.push({ full, grid });
         }
+        if(print) { process.stdout.write(`\r\x1b[K${difficulty} - ${i + 1} of ${count} (${formatTime(Date.now() - startTime)})`); }
     }
     return { duration: (Date.now() - startTime), grids };
 }
 
-export function generateAllGenericGrids(counts: DifficultyMap<number>): DifficultyMap<{ duration: number, grids: Array<{ full: string, grid: string}> }> {
-    return {
-        easy: generateGenericGrids('easy', counts.easy),
-        medium: generateGenericGrids('medium', counts.medium),
-        hard: generateGenericGrids('hard', counts.hard)
-    };
+export function generateAllGenericGrids(counts: DifficultyMap<number>, print: boolean = false): DifficultyMap<{ duration: number, grids: Array<{ full: string, grid: string}> }> {
+    const easy = generateGenericGrids('easy', counts.easy, print);
+    if(print) { process.stdout.write(`\r\x1b[Keasy - ${counts.easy} of ${counts.easy} (${formatTime(easy.duration)})\n`); }
+    const medium = generateGenericGrids('medium', counts.medium, print);
+    if(print) { process.stdout.write(`\r\x1b[Kmedium - ${counts.medium} of ${counts.medium} (${formatTime(medium.duration)})\n`); }
+    const hard = generateGenericGrids('hard', counts.hard, print);
+    if(print) { process.stdout.write(`\r\x1b[Khard - ${counts.hard} of ${counts.hard} (${formatTime(hard.duration)})\n`); }
+    return { easy, medium, hard };
 }
