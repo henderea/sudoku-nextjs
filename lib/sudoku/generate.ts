@@ -1,5 +1,5 @@
 import { _rand, _times } from './utils';
-import { toGenericGrid, exportGenericGrid, importGenericGrid } from './exportImport';
+import { toGenericGrid } from './exportImport';
 
 import { Square, square } from './Square';
 import { Grid } from './Grid';
@@ -145,11 +145,4 @@ export function generateAllGenericGrids(counts: DifficultyMap<number>): Difficul
         medium: generateGenericGrids('medium', counts.medium),
         hard: generateGenericGrids('hard', counts.hard)
     };
-}
-
-export {
-    Square,
-    Grid,
-    exportGenericGrid,
-    importGenericGrid
 }
